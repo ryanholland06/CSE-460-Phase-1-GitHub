@@ -235,9 +235,31 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
         			}
         		}
         	}
-        	else if (opcode == 18) {
-        	
+		else if (opcode == 14) {
+        		r[rd] = sr;
         	}
+       		 else if (opcode == 15) {
+        		sr = r[rd];
+       		}
+       	 	else if (opcode == 16) {
+        		pc = addr;
+        	}
+        	else if (opcode == 17) {
+        		int LESS = (sr >> 3) & 1U;		// how do I keep the value of pc for the return?
+        		if (LESS == 1){
+				pc = addr;
+        		}
+        	}
+        	else if (opcode == 18) {
+        		int EQUAL = (sr >> 2) & 1U;
+        		if (EQUAL == 1)
+				pc = addr;
+        	}
+        	else if (opcode == 19) {
+        		int GREATER = (sr >> 1) & 1U;
+        		if (GREATER == 1)
+				pc = addr;
+       		 }
         	else if (opcode == 20) {
         		temp = pc;
         		pc = addr; 	
@@ -246,12 +268,12 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
 			pc = temp;
         	}
         	else if (opcode == 22) {
-            	fstream inn;
-            	inn.open ("read.in", fstream::in);
+            		fstream inn;
+            		inn.open ("read.in", fstream::in);
             
-            	inn >> r[rd];
+            		inn >> r[rd];
             
-            	inn.close();
+            		inn.close();
         	}
         	else if (opcode == 23) {
         		fstream facts;
@@ -267,7 +289,6 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
         	else if (opcode == 25) {	// empty braces mean do nothing, (noop) does nothing.
         	
         	}
-
 		else {
 			cout << "Bad opcode = " << opcode << endl;
 			exit(3);

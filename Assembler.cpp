@@ -25,16 +25,30 @@ Assembler::Assembler()
 	jumpTable["subc"] = &Assembler::subc;
 	jumpTable["subci"] = &Assembler::subci;
 	jumpTable["and"] = &Assembler::_and;
-	jumpTable["andi"] = &Assembler::_andi;
+	jumpTable["andi"] = &Assembler::andi;
 	jumpTable["xor"] = &Assembler::_xor;
-	jumpTable["xori"] = &Assembler::_xori;
+	jumpTable["xori"] = &Assembler::xori;
 	jumpTable["compl"] = &Assembler::_compl;
 	jumpTable["shl"] = &Assembler::shl;
-	jumpTable["shlr"] = &Assembler::shla;
+	jumpTable["shla"] = &Assembler::shla;
 	jumpTable["shr"] = &Assembler::shr;
 	jumpTable["shra"] = &Assembler::shra;
+	jumpTable["compr"] = &Assembler::compr;
+	jumpTable["compri"] = &Assembler::compri;
+	jumpTable["getstat"] = &Assembler::getstat;
+	jumpTable["putstat"] = &Assembler::putstat;
+	jumpTable["jump"] = &Assembler::jump;
+	jumpTable["jumpl"] = &Assembler::jumpl;
+	jumpTable["jumpe"] = &Assembler::jumpe;
+	jumpTable["jumpg"] = &Assembler::jumpg;
+	jumpTable["call"] = &Assembler::call;
+	jumpTable["return"] = &Assembler::_return;
+	jumpTable["read"] = &Assembler::read;
+	jumpTable["write"] = &Assembler::write;
+	jumpTable["halt"] = &Assembler::halt;
+	jumpTable["noop"] = &Assembler::noop;
 
-} // Assembler
+}	//Assembler
 
 int Assembler::assemble(fstream& in, fstream& out)
 {
@@ -42,16 +56,15 @@ int Assembler::assemble(fstream& in, fstream& out)
 	string opcode;
 	const int success = false;
 	const int error = true;
-	//const int debug = false;
+	//const int debug = fasle;
 	int instruction;
 
 	getline(in, line);
-
 	while (!in.eof()) {
 		istringstream str(line.c_str());
 		str >> opcode;
-		if (opcode[0] == '!') {
-			getline(in, line);
+		if (opcode[0] == '!') {			// this is the part for commenting out code
+			getline(in, line);			// MAYBE***
 			continue;
 		}
 
@@ -60,8 +73,7 @@ int Assembler::assemble(fstream& in, fstream& out)
 				throw NullPointerException();
 			else instruction = (this->*jumpTable[opcode])(str);
 
-		}
-		catch (NullPointerException e) {
+		} catch (NullPointerException e) {
 			cerr << e.what() << endl;
 			return error;
 		}
@@ -72,7 +84,8 @@ int Assembler::assemble(fstream& in, fstream& out)
 		getline(in, line);
 	}
 	return success;
-} // assemble
+
+}	//assemble
 
 int Assembler::load(istringstream & str)
 {
@@ -83,7 +96,7 @@ int Assembler::load(istringstream & str)
 	if (addr < 0 || addr > 255)
 		return -1;
 	int inst = 0;
-	inst = inst | rd << 9 | addr;
+	inst = inst | rd<<9 | addr;
 	return inst;
 }
 
@@ -96,7 +109,7 @@ int Assembler::loadi(istringstream & str)
 	if (constant < -128 || constant > 127)
 		return -1;
 	int inst = 0;
-	inst = inst | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	inst = inst | rd<<9 | 1<<8 | (0x000000ff & constant);
 	return inst;
 }
 
@@ -106,7 +119,7 @@ int Assembler::store(istringstream & str)
 	str >> rd >> addr;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (addr < 0 || addr > 255)
+	if (addr < 0 ||addr > 255)
 		return -1;
 	int inst = 1;
 	inst = inst << 11 | rd << 9 | addr;
@@ -122,72 +135,72 @@ int Assembler::add(istringstream & str)
 	if (rs < 0 || rs > 3)
 		return -1;
 	int inst = 2;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	inst = inst << 11 | rd<<9 | rs<<6;
 	return inst;
 }
 
-int Assembler::addi(istringstream & str)
+int Assembler::addi(istringstream & str)						// ask if done correctly?
 {
 	int rd, constant;
 	str >> rd >> constant;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
-	int inst = 2;
-	inst = inst << 11 | rd | 1 << 8 | (0x000000ff & constant);
+	int inst = 2; 												
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);	// ask about how exactly it works?????
 	return inst;
 }
-
 
 int Assembler::addc(istringstream & str)
 {
-	int rd, rs;
+	int rd, rs;						// how does the carry work?
 	str >> rd >> rs;
 	if (rd < 0 || rd > 3)
 		return -1;
 	if (rs < 0 || rs > 3)
 		return -1;
 	int inst = 3;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	inst = inst<<11 | rd<<9 | rs<<6;		//right now looks exactly like (add) need to worry about the carry
 	return inst;
 }
+
 int Assembler::addci(istringstream & str)
 {
 	int rd, constant;
-	str >> rd >> constant;
+	str >> rd >> constant ;				// might have to involve carry in some way
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
 	int inst = 3;
-	inst = inst << 11 | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	inst = inst<<11 | rd<<9 | (0x000000ff & constant);	//might have to add a carry(maybe: carry << 0)
 	return inst;
 }
 
-int Assembler::sub(istringstream & str)
-{
-	int rd, rs;
-	str >> rd >> rs;
-	if (rd < 0 || rd > 3)
+int Assembler::sub(istringstream & str)			// need to convert the value in rs into a negative value
+{												// whould this be done in VM or in assembler?
+	int rd, rs;								
+	str >> rd >> rs;							// (>>)  shifts right and adds either 0s, if value is an unsigned type,
+	if (rd < 0 || rd > 3)						// or extends the top bit (to preserve the sign) if its a signed type
 		return -1;
-	if (rs < 0 || rs > 3)
+	if (rs < 0 || rs > 3)						//The left shift and right shift operators should not be used for negative numbers. why?
 		return -1;
-	int inst = 4;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	int inst = 4;								// how do you handle Negative operations?????
+	inst = inst<<11 | rd<<9 | rs<<6;
 	return inst;
 }
 
-int Assembler::subi(istringstream & str)
+int Assembler::subi(istringstream & str)						
 {
 	int rd, constant;
 	str >> rd >> constant;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
-	int inst = 4;
-	inst = inst << 11 | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	int inst = 4; 											
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);	// this seems like its meant to load, how do you sub?
 	return inst;
 }
 
@@ -199,20 +212,21 @@ int Assembler::subc(istringstream & str)
 		return -1;
 	if (rs < 0 || rs > 3)
 		return -1;
-	int inst = 5;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	int inst = 5; 											
+	inst = inst<<11 | rd<<9 | rs<<6; 
 	return inst;
 }
+
 int Assembler::subci(istringstream & str)
 {
 	int rd, constant;
 	str >> rd >> constant;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
-	int inst = 5;
-	inst = inst << 11 | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	int inst = 5; 											
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);
 	return inst;
 }
 
@@ -225,19 +239,20 @@ int Assembler::_and(istringstream & str)
 	if (rs < 0 || rs > 3)
 		return -1;
 	int inst = 6;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	inst = inst<<11 | rd<<9 | rs<<6;
 	return inst;
 }
-int Assembler::_andi(istringstream & str)
+
+int Assembler::andi(istringstream & str)
 {
 	int rd, constant;
 	str >> rd >> constant;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
-	int inst = 6;
-	inst = inst << 11 | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	int inst = 6; 											
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);
 	return inst;
 }
 
@@ -250,69 +265,220 @@ int Assembler::_xor(istringstream & str)
 	if (rs < 0 || rs > 3)
 		return -1;
 	int inst = 7;
-	inst = inst << 11 | rd << 9 | rs << 6;
+	inst = inst<<11 | rd<<9 | rs<<6;
 	return inst;
 }
-int Assembler::_xori(istringstream & str)
+
+int Assembler::xori(istringstream & str)
 {
 	int rd, constant;
 	str >> rd >> constant;
 	if (rd < 0 || rd > 3)
 		return -1;
-	if (constant < -128 || constant > 128)
+	if (constant < -128 || constant > 127)
 		return -1;
-	int inst = 7;
-	inst = inst << 11 | rd << 9 | 1 << 8 | (0x000000ff & constant);
+	int inst = 7; 											
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);
 	return inst;
 }
+
 int Assembler::_compl(istringstream & str)
 {
 	int rd;
 	str >> rd;
 	if (rd < 0 || rd > 3)
 		return -1;
-	int inst = 8;
-	inst = inst << 11;
+	int inst = 8; 											
+	inst = inst<<11 | rd<<9;
 	return inst;
 }
 
 int Assembler::shl(istringstream & str)
 {
-	int rd;
+	int rd;				// only sets CARRY
 	str >> rd;
 	if (rd < 0 || rd > 3)
 		return -1;
-	int inst = 9;
-	inst = inst << 11;
+	int inst = 9; 											
+	inst = inst<<11 | rd<<9;
 	return inst;
 }
+
 int Assembler::shla(istringstream & str)
 {
-	int rd;
+	int rd;			//same thing but this one both sets carry and sign extend
 	str >> rd;
 	if (rd < 0 || rd > 3)
 		return -1;
-	int inst = 10;
-	inst = inst << 11;
+	int inst = 10; 											
+	inst = inst<<11 | rd<<9;
 	return inst;
 }
+
 int Assembler::shr(istringstream & str)
 {
-	int rd;
+	int rd;					// only sets CARRY
 	str >> rd;
 	if (rd < 0 || rd > 3)
 		return -1;
-	int inst = 11;
-	inst = inst << 11;
+	int inst = 11; 											
+	inst = inst<<11 | rd<<9;
 	return inst;
 }
+
 int Assembler::shra(istringstream & str)
+{
+	int rd;					//same thing but this one both sets carry and sign extend
+	str >> rd;
+	if (rd < 0 || rd > 3)
+		return -1;
+	int inst = 12; 											
+	inst = inst<<11 | rd<<9;
+	return inst;
+}
+
+int Assembler::compr(istringstream & str)
+{
+	int rd, rs;
+	str >> rd >> rs;
+	if (rd < 0 || rd > 3)
+		return -1;
+	if (rs < 0 || rs > 3)
+		return -1;
+	int inst = 13;
+	inst = inst<<11 | rd<<9 | rs<<6;
+	return inst;
+}
+
+int Assembler::compri(istringstream & str)
+{
+	int rd, constant;
+	str >> rd >> constant;
+	if (rd < 0 || rd > 3)
+		return -1;
+	if (constant < -128 || constant > 127)
+		return -1;
+	int inst = 13; 											
+	inst = inst<<11 | rd<<9 | 1<<8 | (0x000000ff & constant);
+	return inst;
+}
+
+int Assembler::getstat(istringstream & str)
 {
 	int rd;
 	str >> rd;
 	if (rd < 0 || rd > 3)
 		return -1;
-	int inst = 12;
-	inst = inst << 11;
+	int inst = 14; 											
+	inst = inst<<11 | rd<<9;
+	return inst;
+}
+
+int Assembler::putstat(istringstream & str)
+{
+	int rd;
+	str >> rd;
+	if (rd < 0 || rd > 3)
+		return -1;
+	int inst = 15; 											
+	inst = inst<<11 | rd<<9;
+	return inst;
+}
+
+int Assembler::jump(istringstream & str)
+{
+	int addr;
+	str >> addr;
+	if (addr < 0 ||addr > 255)
+		return -1;
+	int inst = 16;
+	inst = inst<<11 | 1<<8 | addr;
+	return inst;
+}
+
+int Assembler::jumpl(istringstream & str)
+{
+	int addr;
+	str >> addr;
+	if (addr < 0 ||addr > 255)
+		return -1;
+	int inst = 17;
+	inst = inst<<11 | 1<<8 | addr;
+	return inst;
+}
+
+int Assembler::jumpe(istringstream & str)
+{
+	int addr;
+	str >> addr;
+	if (addr < 0 ||addr > 255)
+		return -1;
+	int inst = 18;
+	inst = inst<<11 | 1<<8 | addr;
+	return inst;
+}
+
+int Assembler::jumpg(istringstream & str)
+{
+	int addr;
+	str >> addr;
+	if (addr < 0 ||addr > 255)
+		return -1;
+	int inst = 19;
+	inst = inst<<11 | 1<<8 | addr;
+	return inst;
+}
+
+int Assembler::call(istringstream & str)
+{
+	int addr;
+	str >> addr;
+	if (addr < 0 ||addr > 255)
+		return -1;
+	int inst = 20;
+	inst = inst<<11 | addr;
+	return inst;
+}
+
+int Assembler::_return(istringstream & str)
+{
+	int inst = 21;
+	inst = inst<<11;
+	return inst;
+}
+
+int Assembler::read(istringstream & str)
+{
+	int rd;
+	str >> rd;
+	if (rd < 0 || rd > 3)
+		return -1;
+	int inst = 22;
+	inst = inst<<11 | rd<<9; /* | 0<<5 */	
+	return inst;		// (d) is that a dont care and is this done right
+}
+
+int Assembler::write(istringstream & str)
+{
+	int rd;
+	str >> rd;
+	if (rd < 0 || rd > 3)
+		return -1;
+	int inst = 23;
+	inst = inst<<11 | rd<<9;	
+	return inst;
+}
+
+int Assembler::halt(istringstream & str)
+{
+	int inst = 24;
+	inst = inst<<11;	
+	return inst;
+}
+
+int Assembler::noop(istringstream & str)
+{
+	int inst = 25;
+	inst = inst<<11;
 	return inst;
 }

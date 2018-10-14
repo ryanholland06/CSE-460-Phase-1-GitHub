@@ -236,13 +236,13 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
         		}
         	}
 		else if (opcode == 14) {
-        		r[rd] = sr;
+			r[rd] = sr;
         	}
        		 else if (opcode == 15) {
-        		sr = r[rd];
+			 sr = r[rd];
        		}
        	 	else if (opcode == 16) {
-        		pc = addr;
+			pc = addr;
         	}
         	else if (opcode == 17) {
         		int LESS = (sr >> 3) & 1U;		// how do I keep the value of pc for the return?

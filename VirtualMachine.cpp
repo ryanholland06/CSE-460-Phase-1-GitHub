@@ -199,7 +199,56 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
 		if (r[rd] & 0x8000) r[rd] |= 0xffff0000;
 		else r[rd] &= 0xffff;
 		}
-
+		else if (opcode = 13) {
+        		if (i) {
+        			if (r[rd] < constant)			// if constant or r[rs] are <, =, or > then
+        				sr = 1<<3 | 0<<2 | 0<<1;	// bit 1 gets shifted to its apropriate place
+        			else if (r[rd] == constant)		// and 0's are shifted  to reset either less,
+        				sr = 0<<3 | 1<<2 | 0<<1;	// equal, or greater than bits.
+        			else if (r[rd] > constant)
+        				sr = 0<<3 | 0<<2 | 1<<1; 
+        		}
+        		else {
+        			if (r[rd] < r[rs])
+        				sr = 1<<3 | 0<<2 | 0<<1;
+        			else if (r[rd] == r[rs])
+        				sr = 0<<3 | 1<<2 | 0<<1;
+        			else if (r[rd] > r[rs])
+        				sr = 0<<3 | 0<<2 | 1<<1;
+        		}
+        	}
+        	else if (opcode == 18) {
+        	
+        	}
+        	else if (opcode == 20) {
+        		temp = pc;
+        		pc = addr; 	
+        	}
+        	else if (opcode == 21) {
+			pc = temp;
+        	}
+        	else if (opcode == 22) {
+            	fstream inn;
+            	inn.open ("read.in", fstream::in);
+            
+            	inn >> r[rd];
+            
+            	inn.close();
+        	}
+        	else if (opcode == 23) {
+        		fstream facts;
+        		facts.open ("write.out", fstream::out);
+        	
+        		facts << "r[" << rd << "] = " << r[rd];
+        	
+        		facts.close();
+        	}
+        	else if (opcode == 24) {
+        	exit(0);
+        	}
+        	else if (opcode == 25) {	// empty braces mean do nothing, (noop) does nothing.
+        	
+        	}
 
 		else {
 			cout << "Bad opcode = " << opcode << endl;

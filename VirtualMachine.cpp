@@ -201,20 +201,38 @@ void VirtualMachine::run(fstream& objectCode, fstream& in, fstream& out)
 		}
 		else if (opcode = 13) {
         		if (i) {
-        			if (r[rd] < constant)			// if constant or r[rs] are <, =, or > then
-        				sr = 1<<3 | 0<<2 | 0<<1;	// bit 1 gets shifted to its apropriate place
-        			else if (r[rd] == constant)		// and 0's are shifted  to reset either less,
-        				sr = 0<<3 | 1<<2 | 0<<1;	// equal, or greater than bits.
-        			else if (r[rd] > constant)
-        				sr = 0<<3 | 0<<2 | 1<<1; 
+        			if (r[rd] < constant){			// if constant or r[rs] are <, =, or > then
+        				sr ^= (-1 ^ sr) & (1UL << 3);	// bit 1 gets shifted to its apropriate place
+        				sr ^= (-0 ^ sr) & (1UL << 2);	// and 0's are shifted  to reset either less,
+        				sr ^= (-0 ^ sr) & (1UL << 1);	// equal, or greater than bits.
+        			}
+        			else if (r[rd] == constant){
+        				sr ^= (-0 ^ sr) & (1UL << 3);
+        				sr ^= (-1 ^ sr) & (1UL << 2);
+        				sr ^= (-0 ^ sr) & (1UL << 1);
+        			}
+        			else if (r[rd] > constant){
+        				sr ^= (-0 ^ sr) & (1UL << 3);
+        				sr ^= (-0 ^ sr) & (1UL << 2);
+        				sr ^= (-1 ^ sr) & (1UL << 1);
+        			}
         		}
         		else {
-        			if (r[rd] < r[rs])
-        				sr = 1<<3 | 0<<2 | 0<<1;
-        			else if (r[rd] == r[rs])
-        				sr = 0<<3 | 1<<2 | 0<<1;
-        			else if (r[rd] > r[rs])
-        				sr = 0<<3 | 0<<2 | 1<<1;
+        			if (r[rd] < r[rs]){			// if constant or r[rs] are <, =, or > then
+        				sr ^= (-1 ^ sr) & (1UL << 3);	// bit 1 gets shifted to its apropriate place
+        				sr ^= (-0 ^ sr) & (1UL << 2);	// and 0's are shifted  to reset either less,
+        				sr ^= (-0 ^ sr) & (1UL << 1);	// equal, or greater than bits.
+        			}
+        			else if (r[rd] == r[rs]){
+        				sr ^= (-0 ^ sr) & (1UL << 3);
+        				sr ^= (-1 ^ sr) & (1UL << 2);
+        				sr ^= (-0 ^ sr) & (1UL << 1);
+        			}
+        			else if (r[rd] > r[rs]){
+        				sr ^= (-0 ^ sr) & (1UL << 3);
+        				sr ^= (-0 ^ sr) & (1UL << 2);
+        				sr ^= (-1 ^ sr) & (1UL << 1);
+        			}
         		}
         	}
         	else if (opcode == 18) {
